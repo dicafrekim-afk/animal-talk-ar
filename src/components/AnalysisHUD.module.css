@@ -1,0 +1,97 @@
+.hud {
+  position: absolute;
+  top: 4rem;
+  right: 1rem;
+  min-width: 200px;
+  background: rgba(0, 8, 20, 0.82);
+  border: 1px solid #00bfff;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  color: #e0f4ff;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 0.82rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 20px #00bfff33;
+  z-index: 3;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #003355;
+}
+
+.icon { font-size: 1.2rem; }
+
+.emotion {
+  flex: 1;
+  font-weight: 700;
+  color: #00bfff;
+  font-size: 0.9rem;
+  text-shadow: 0 0 8px #00bfff88;
+}
+
+.confidence {
+  font-size: 0.75rem;
+  color: #0099cc;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: #0077aa;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0 0.1rem;
+  line-height: 1;
+}
+.closeBtn:hover { color: #00bfff; }
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 0.6rem;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.label {
+  color: #0099cc;
+  white-space: nowrap;
+}
+
+.value {
+  color: #cceeff;
+  text-align: right;
+  font-weight: 500;
+}
+
+/* 신뢰도 바 */
+.confidenceBar {
+  height: 3px;
+  background: #001a2e;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.confidenceFill {
+  height: 100%;
+  background: linear-gradient(90deg, #0066aa, #00bfff);
+  border-radius: 999px;
+  transition: width 0.5s ease;
+  box-shadow: 0 0 6px #00bfff;
+}

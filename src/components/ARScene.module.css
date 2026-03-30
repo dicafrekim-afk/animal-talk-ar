@@ -1,0 +1,140 @@
+.arContainer {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #000;
+}
+
+/* 카메라 피드 - 전체 화면 배경 */
+.cameraBackground {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+/* Three.js Canvas - 카메라 위에 투명 오버레이 */
+.threeCanvas {
+  position: absolute !important;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* UI 오버레이 - 최상위 */
+.uiOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 2rem;
+  pointer-events: none;
+}
+
+.uiOverlay > * {
+  pointer-events: auto;
+}
+
+.title {
+  position: absolute;
+  top: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #00bfff;
+  text-shadow: 0 0 10px #00bfff, 0 0 20px #00bfff;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+.analyzingBadge {
+  margin-bottom: 1rem;
+  padding: 0.4rem 1.2rem;
+  border: 1px solid #00bfff;
+  border-radius: 999px;
+  color: #00bfff;
+  font-size: 0.85rem;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px #00bfff; }
+  50% { opacity: 0.6; box-shadow: 0 0 20px #00bfff; }
+}
+
+.errorOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.85);
+  color: #ff4d4d;
+  font-family: sans-serif;
+  gap: 0.5rem;
+}
+
+.errorDetail {
+  font-size: 0.8rem;
+  color: #aaa;
+}
+
+/* 분석 버튼 */
+.analyzeBtn {
+  padding: 0.8rem 2.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: 'Segoe UI', sans-serif;
+  color: #00bfff;
+  background: rgba(0, 10, 30, 0.75);
+  border: 2px solid #00bfff;
+  border-radius: 999px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 0 12px #00bfff55, inset 0 0 8px #00bfff11;
+  transition: all 0.2s ease;
+  letter-spacing: 0.05em;
+}
+
+.analyzeBtn:hover:not(:disabled) {
+  background: rgba(0, 191, 255, 0.15);
+  box-shadow: 0 0 24px #00bfff99, inset 0 0 12px #00bfff22;
+  transform: translateY(-2px);
+}
+
+.analyzeBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: #005577;
+  color: #005577;
+  box-shadow: none;
+}
+
+.noCatBadge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 0.6rem 1.4rem;
+  background: rgba(0, 8, 20, 0.8);
+  border: 1px solid #0077aa;
+  border-radius: 12px;
+  color: #99ddff;
+  font-size: 0.95rem;
+  backdrop-filter: blur(8px);
+  text-align: center;
+}

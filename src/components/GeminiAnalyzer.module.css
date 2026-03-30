@@ -1,0 +1,33 @@
+.analyzeBtn {
+  padding: 0.8rem 2.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: 'Segoe UI', sans-serif;
+  color: #00bfff;
+  background: rgba(0, 10, 30, 0.75);
+  border: 2px solid #00bfff;
+  border-radius: 999px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 0 12px #00bfff55, inset 0 0 8px #00bfff11;
+  transition: all 0.2s ease;
+  letter-spacing: 0.05em;
+}
+
+.analyzeBtn:hover:not(:disabled) {
+  background: rgba(0, 191, 255, 0.15);
+  box-shadow: 0 0 24px #00bfff99, inset 0 0 12px #00bfff22;
+  transform: translateY(-2px);
+}
+
+.analyzeBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.analyzeBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: #005577;
+  color: #005577;
+  box-shadow: none;
+}
