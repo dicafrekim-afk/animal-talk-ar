@@ -139,6 +139,56 @@
   text-align: center;
 }
 
+/* 2D 말풍선 */
+.speechBubble {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -60%);
+  max-width: 78vw;
+  padding: 0.85rem 1.4rem 1.1rem;
+  background: rgba(0, 8, 25, 0.82);
+  border: 2px solid #00bfff;
+  border-radius: 20px;
+  color: #e0f7ff;
+  font-size: 1.15rem;
+  font-weight: 600;
+  font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;
+  line-height: 1.5;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 18px #00bfff55, inset 0 0 10px #00bfff11;
+  animation: bubblePop 0.25s ease-out;
+  pointer-events: none;
+}
+
+/* 말풍선 꼬리 (아래 삼각형) */
+.speechBubble::after {
+  content: '';
+  position: absolute;
+  bottom: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 7px solid transparent;
+  border-top-color: #00bfff;
+}
+
+.speechBubble::before {
+  content: '';
+  position: absolute;
+  bottom: -11px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(0, 8, 25, 0.82);
+  z-index: 1;
+}
+
+@keyframes bubblePop {
+  from { opacity: 0; transform: translate(-50%, -55%) scale(0.92); }
+  to   { opacity: 1; transform: translate(-50%, -60%) scale(1); }
+}
+
 .buttonContainer {
   display: flex;
   gap: 1rem;

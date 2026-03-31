@@ -68,6 +68,13 @@ export default function ARScene() {
         {/* 행동 분석 HUD */}
         <AnalysisHUD analysis={analysis} onClose={clearAnalysis} />
 
+        {/* 2D 말풍선 - 화면 중앙 */}
+        {analysis?.cat_detected && analysis.speech_bubble && (
+          <div className={styles.speechBubble}>
+            <span>{analysis.speech_bubble}</span>
+          </div>
+        )}
+
         {/* 고양이 미감지 메시지 */}
         {analysis && !analysis.cat_detected && (
           <div className={styles.noCatBadge}>{analysis.speech_bubble}</div>

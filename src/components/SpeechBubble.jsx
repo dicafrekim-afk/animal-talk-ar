@@ -95,7 +95,6 @@ export default function SpeechBubble({ message = '냐옹~', position = [0, 1.5, 
         anchorY="middle"
         maxWidth={bubbleWidth - 0.3}
         textAlign="center"
-        font="/fonts/NotoSansKR-Regular.otf"
         outlineWidth={0.008}
         outlineColor="#003355"
       >

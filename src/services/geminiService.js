@@ -55,7 +55,18 @@ const ANALYSIS_PROMPT = `너는 고양이 행동 분석 전문가야. 아래 기
 2단계: 동공 → 귀 → 수염 → 몸 순서로 각 신호를 위 기준에 맞게 하나씩 판단.
 3단계: 조합 룰을 적용해 감정을 결정.
 4단계: confidence_score 계산 — 4개 신호 모두 명확히 보임: 0.85~1.0 / 2~3개 보임: 0.55~0.8 / 1개 이하 또는 불명확: 0.3~0.5.
-5단계: 현재 감정에 어울리는 귀여운 한국어 대사 1~2문장 작성.
+5단계: 아래 규칙에 따라 고양이 대사를 1~2문장 작성.
+  - 고양이가 지금 이 순간 집사에게 직접 말하는 방식으로 작성 (1인칭, 현재형)
+  - 감정·욕구를 직접 표현 (예: "배고파", "놀아줘", "건들지 마", "저기 뭔가 있어!")
+  - 너무 길거나 설명적이면 안 됨. 짧고 직관적으로.
+  - 고양이 특유의 표현 자유롭게 사용 ("냥", "~거든", "~라고", "~잖아" 등)
+  - 감정별 대사 방향:
+    * 안정 → 만족감, 지금 건드리지 말라는 느낌 ("지금 딱 좋아. 건들지 마.")
+    * 흥분·사냥 → 뭔가 발견했거나 사냥 욕구 ("저기 뭔가 있어! 내가 잡고 말겠어!")
+    * 경계 → 낯선 것에 대한 긴장 ("지금 뭐가 이상한데... 좀 봐봐.")
+    * 두려움 → 무섭거나 도망치고 싶은 느낌 ("무서워... 나 지금 좀 안아줘.")
+    * 호기심 → 궁금한 게 생긴 느낌 ("저게 뭐야? 나 가봐야 할 것 같은데냥.")
+  - 배고픔 신호(자세+귀 조합으로 판단될 경우) → "밥은요? 밥 언제 줄 거야."
 
 반드시 아래 JSON만 반환해. 설명·주석 없이 JSON만:
 {
@@ -91,7 +102,7 @@ const MOCK_RESULTS = [
     whisker_direction: '앞으로 쏠림',
     emotion: '흥분·사냥',
     confidence_score: 0.91,
-    speech_bubble: '저기 뭔가 움직였어! 내가 잡고야 말겠어!',
+    speech_bubble: '저기 뭔가 있어! 내가 잡고 말겠다냥!',
   },
   {
     cat_detected: true,
@@ -101,7 +112,7 @@ const MOCK_RESULTS = [
     whisker_direction: '편안함',
     emotion: '안정',
     confidence_score: 0.95,
-    speech_bubble: '지금 딱 좋은 온도야... 건들지 마.',
+    speech_bubble: '지금 딱 좋거든. 건들지 마.',
   },
   {
     cat_detected: true,
@@ -111,7 +122,27 @@ const MOCK_RESULTS = [
     whisker_direction: '앞으로 쏠림',
     emotion: '호기심',
     confidence_score: 0.87,
-    speech_bubble: '저게 뭐지? 조금만 더 가까이 가볼까냥~',
+    speech_bubble: '저게 뭐야? 나 가봐야 할 것 같은데냥.',
+  },
+  {
+    cat_detected: true,
+    pupil_state: '적당함',
+    ear_position: '앞으로 향함',
+    body_posture: '서있음',
+    whisker_direction: '편안함',
+    emotion: '경계',
+    confidence_score: 0.82,
+    speech_bubble: '밥은요? 밥 언제 줄 거야.',
+  },
+  {
+    cat_detected: true,
+    pupil_state: '완전히 확장됨',
+    ear_position: '뒤로 젖혀짐',
+    body_posture: '웅크림',
+    whisker_direction: '뒤로 당겨짐',
+    emotion: '두려움',
+    confidence_score: 0.88,
+    speech_bubble: '무서워... 나 좀 안아줘.',
   },
 ]
 
