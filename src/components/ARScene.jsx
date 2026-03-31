@@ -13,7 +13,7 @@ import styles from './ARScene.module.css'
  */
 export default function ARScene() {
   const { videoRef, isReady, error: cameraError } = useCamera()
-  const { analysis, isAnalyzing, error: analysisError, analyze, clearAnalysis } = useCatAnalysis(videoRef)
+  const { analysis, isAnalyzing, error: analysisError, analyze, clearAnalysis, micReady, micError } = useCatAnalysis(videoRef)
   const { isListening, isSupported, start, stop } = useSpeechRecognition(analyze)
   const [voiceCommandActive, setVoiceCommandActive] = useState(true);
 
@@ -89,7 +89,14 @@ export default function ARScene() {
 
         {/* 분석 중 표시 */}
         {isAnalyzing && (
-          <div className={styles.analyzingBadge}>쿤이/민이 분석 중...</div>
+          <div className={styles.analyzingBadge}>
+            {micReady ? '👂 소리 듣고 분석 중...' : '📷 분석 중...'}
+          </div>
+        )}
+
+        {/* 마이크 오류 안내 (첫 로드 시만 노출) */}
+        {micError && !analysis && !isAnalyzing && (
+          <div className={styles.micErrorBadge}>🎙️ 마이크 없이 이미지만 분석해요</div>
         )}
 
         {isListening && (

@@ -124,6 +124,17 @@
   box-shadow: none;
 }
 
+.micErrorBadge {
+  margin-bottom: 0.6rem;
+  padding: 0.35rem 1rem;
+  border: 1px solid #888;
+  border-radius: 999px;
+  color: #aaa;
+  font-size: 0.78rem;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+}
+
 .noCatBadge {
   position: absolute;
   top: 50%;

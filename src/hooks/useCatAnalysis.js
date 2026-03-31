@@ -1,24 +1,32 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { analyzeFrame } from '../services/geminiService'
 import { captureSharpestFrame } from '../utils/imageUtils'
+import { useAudioCapture } from './useAudioCapture'
 
 /**
  * 고양이 분석 상태와 로직을 캡슐화하는 커스텀 훅
- * ARScene, GeminiAnalyzer 간 props 드릴링을 제거
+ * 이미지 + 오디오를 동시에 캡처해 Gemini로 전송
  */
 export function useCatAnalysis(videoRef) {
   const [analysis, setAnalysis] = useState(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [error, setError] = useState(null)
-  const abortRef = useRef(null)   // 진행 중인 요청 취소용
-  const prevAnalysisRef = useRef(null) // 스무딩용 이전 결과
+  const abortRef = useRef(null)
+  const prevAnalysisRef = useRef(null)
 
-  const CONFIDENCE_THRESHOLD = 0.5 // 이 미만이면 이전 결과 유지
+  const { isReady: micReady, error: micError, init: initMic, capture: captureAudio } = useAudioCapture()
+
+  const CONFIDENCE_THRESHOLD = 0.5
+  const AUDIO_DURATION_MS = 2500 // 2.5초 녹음 (야옹·골골송 포착에 충분)
+
+  // 마이크 초기화 (카메라 준비 후 자동 요청)
+  useEffect(() => {
+    initMic()
+  }, [initMic])
 
   const analyze = useCallback(async () => {
     if (!videoRef.current || isAnalyzing) return
 
-    // 이전 요청 취소
     abortRef.current?.abort()
     abortRef.current = new AbortController()
 
@@ -26,11 +34,16 @@ export function useCatAnalysis(videoRef) {
     setError(null)
 
     try {
-      // 3프레임 중 가장 선명한 프레임 사용
-      const base64 = await captureSharpestFrame(videoRef.current)
-      const result = await analyzeFrame(base64, abortRef.current.signal)
+      // 이미지(3프레임 선별)와 오디오(2.5초)를 동시에 캡처
+      const [base64, audioData] = await Promise.all([
+        captureSharpestFrame(videoRef.current),
+        captureAudio(AUDIO_DURATION_MS),
+      ])
 
-      // confidence가 낮고 이전 결과가 있으면 이전 결과 유지 (튐 방지)
+      if (abortRef.current.signal.aborted) return
+
+      const result = await analyzeFrame(base64, abortRef.current.signal, audioData)
+
       if (result.cat_detected && result.confidence_score < CONFIDENCE_THRESHOLD && prevAnalysisRef.current) {
         setAnalysis(prevAnalysisRef.current)
       } else {
@@ -38,18 +51,18 @@ export function useCatAnalysis(videoRef) {
         setAnalysis(result)
       }
     } catch (err) {
-      if (err.name === 'AbortError') return // 의도적 취소는 무시
+      if (err.name === 'AbortError') return
       console.error('분석 실패:', err)
       setError(err.message)
     } finally {
       setIsAnalyzing(false)
     }
-  }, [videoRef, isAnalyzing])
+  }, [videoRef, isAnalyzing, captureAudio])
 
   const clearAnalysis = useCallback(() => {
     setAnalysis(null)
     setError(null)
   }, [])
 
-  return { analysis, isAnalyzing, error, analyze, clearAnalysis }
+  return { analysis, isAnalyzing, error, analyze, clearAnalysis, micReady, micError }
 }
