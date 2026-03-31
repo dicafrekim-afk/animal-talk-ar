@@ -54,3 +54,54 @@ export function captureVideoFrame(video) {
   canvas.getContext('2d').drawImage(video, 0, 0)
   return canvas.toDataURL('image/jpeg', JPEG_QUALITY).split(',')[1]
 }
+
+/**
+ * 인접 픽셀 차이 합산으로 이미지 선명도 측정 (높을수록 선명)
+ * @param {string} base64
+ * @returns {Promise<number>}
+ */
+function measureSharpness(base64) {
+  return new Promise(resolve => {
+    const img = new Image()
+    img.onload = () => {
+      const SIZE = 64
+      const canvas = document.createElement('canvas')
+      canvas.width = SIZE
+      canvas.height = SIZE
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, 0, 0, SIZE, SIZE)
+      const data = ctx.getImageData(0, 0, SIZE, SIZE).data
+      let sum = 0
+      for (let i = 0; i < data.length - 4; i += 4) {
+        sum += Math.abs(data[i] - data[i + 4])           // 가로 방향 엣지
+        if (i + SIZE * 4 < data.length) {
+          sum += Math.abs(data[i] - data[i + SIZE * 4])  // 세로 방향 엣지
+        }
+      }
+      resolve(sum)
+    }
+    img.onerror = () => resolve(0)
+    img.src = `data:image/jpeg;base64,${base64}`
+  })
+}
+
+/**
+ * 여러 프레임 중 가장 선명한 프레임을 캡처해 반환
+ * @param {HTMLVideoElement} video
+ * @param {number} count - 캡처할 프레임 수 (기본 3)
+ * @param {number} interval - 프레임 간 간격 ms (기본 150)
+ * @returns {Promise<string>} 가장 선명한 프레임의 base64
+ */
+export async function captureSharpestFrame(video, count = 3, interval = 150) {
+  const frames = []
+  for (let i = 0; i < count; i++) {
+    const base64 = captureVideoFrame(video)
+    const sharpness = await measureSharpness(base64)
+    frames.push({ base64, sharpness })
+    if (i < count - 1) {
+      await new Promise(r => setTimeout(r, interval))
+    }
+  }
+  frames.sort((a, b) => b.sharpness - a.sharpness)
+  return frames[0].base64
+}
