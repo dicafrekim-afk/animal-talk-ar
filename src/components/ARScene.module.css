@@ -138,3 +138,14 @@
   backdrop-filter: blur(8px);
   text-align: center;
 }
+
+.buttonContainer {
+  display: flex;
+  gap: 1rem;
+}
+
+.analyzeBtn.active {
+  border-color: #4dff4d;
+  color: #4dff4d;
+  box-shadow: 0 0 12px #4dff4d55, inset 0 0 8px #4dff4d11;
+}

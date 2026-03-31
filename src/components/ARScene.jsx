@@ -1,8 +1,10 @@
 import { Canvas } from '@react-three/fiber'
+import { useState, useEffect } from 'react'
 import SpeechBubble from './SpeechBubble'
 import AnalysisHUD from './AnalysisHUD'
 import { useCamera } from '../hooks/useCamera'
 import { useCatAnalysis } from '../hooks/useCatAnalysis'
+import { useSpeechRecognition } from '../hooks/useSpeechRecognition'
 import styles from './ARScene.module.css'
 
 /**
@@ -12,8 +14,19 @@ import styles from './ARScene.module.css'
 export default function ARScene() {
   const { videoRef, isReady, error: cameraError } = useCamera()
   const { analysis, isAnalyzing, error: analysisError, analyze, clearAnalysis } = useCatAnalysis(videoRef)
+  const { isListening, isSupported, start, stop } = useSpeechRecognition(analyze)
+  const [voiceCommandActive, setVoiceCommandActive] = useState(true);
 
   const speechMessage = analysis?.cat_detected ? analysis.speech_bubble : null
+
+  useEffect(() => {
+    if (isReady && voiceCommandActive) {
+      start();
+    } else {
+      stop();
+    }
+  }, [isReady, voiceCommandActive, start, stop]);
+
 
   return (
     <div className={styles.arContainer}>
@@ -72,14 +85,28 @@ export default function ARScene() {
           <div className={styles.analyzingBadge}>쿤이/민이 분석 중...</div>
         )}
 
-        {/* 촬영 버튼 */}
-        <button
-          className={styles.analyzeBtn}
-          onClick={analyze}
-          disabled={isAnalyzing || !isReady}
-        >
-          {isAnalyzing ? '분석 중...' : !isReady ? '카메라 준비 중...' : '쿤이/민이 말 걸기'}
-        </button>
+        {isListening && (
+            <div className={styles.analyzingBadge} style={{borderColor: '#4dff4d', color: '#99ff99'}}>음성 명령 대기 중...</div>
+        )}
+
+        <div className={styles.buttonContainer}>
+          {isSupported && (
+            <button
+              className={`${styles.analyzeBtn} ${voiceCommandActive ? styles.active : ''}`}
+              onClick={() => setVoiceCommandActive(prev => !prev)}
+            >
+              {voiceCommandActive ? '음성명령 끄기' : '음성명령 켜기'}
+            </button>
+          )}
+          {/* 촬영 버튼 */}
+          <button
+            className={styles.analyzeBtn}
+            onClick={analyze}
+            disabled={isAnalyzing || !isReady}
+          >
+            {isAnalyzing ? '분석 중...' : !isReady ? '카메라 준비 중...' : '쿤이/민이 말 걸기'}
+          </button>
+        </div>
       </div>
     </div>
   )

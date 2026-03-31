@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#0a0a1a"/>
+  <!-- AR grid lines -->
+  <line x1="256" y1="80" x2="256" y2="432" stroke="#00d4ff" stroke-width="1" stroke-opacity="0.3"/>
+  <line x1="80" y1="256" x2="432" y2="256" stroke="#00d4ff" stroke-width="1" stroke-opacity="0.3"/>
+  <ellipse cx="256" cy="256" rx="160" ry="100" fill="none" stroke="#00d4ff" stroke-width="1.5" stroke-opacity="0.4" stroke-dasharray="8 4"/>
+  <!-- Corner AR brackets -->
+  <path d="M100 130 L100 100 L130 100" fill="none" stroke="#00d4ff" stroke-width="4" stroke-linecap="round"/>
+  <path d="M382 100 L412 100 L412 130" fill="none" stroke="#00d4ff" stroke-width="4" stroke-linecap="round"/>
+  <path d="M100 382 L100 412 L130 412" fill="none" stroke="#00d4ff" stroke-width="4" stroke-linecap="round"/>
+  <path d="M412 382 L412 412 L382 412" fill="none" stroke="#00d4ff" stroke-width="4" stroke-linecap="round"/>
+  <!-- Cat face -->
+  <circle cx="256" cy="268" r="90" fill="#1a1a3e" stroke="#00d4ff" stroke-width="2"/>
+  <!-- Cat ears -->
+  <polygon points="186,200 166,148 216,188" fill="#1a1a3e" stroke="#00d4ff" stroke-width="2"/>
+  <polygon points="326,200 346,148 296,188" fill="#1a1a3e" stroke="#00d4ff" stroke-width="2"/>
+  <!-- Inner ear -->
+  <polygon points="189,197 174,162 210,190" fill="#ff69b4" opacity="0.6"/>
+  <polygon points="323,197 338,162 302,190" fill="#ff69b4" opacity="0.6"/>
+  <!-- Eyes -->
+  <ellipse cx="224" cy="258" rx="14" ry="16" fill="#00d4ff" opacity="0.9"/>
+  <ellipse cx="288" cy="258" rx="14" ry="16" fill="#00d4ff" opacity="0.9"/>
+  <ellipse cx="224" cy="258" rx="6" ry="14" fill="#0a0a1a"/>
+  <ellipse cx="288" cy="258" rx="6" ry="14" fill="#0a0a1a"/>
+  <!-- Nose -->
+  <polygon points="256,278 248,290 264,290" fill="#ff69b4"/>
+  <!-- Whiskers -->
+  <line x1="180" y1="288" x2="236" y2="295" stroke="#00d4ff" stroke-width="1.5" opacity="0.7"/>
+  <line x1="176" y1="300" x2="236" y2="300" stroke="#00d4ff" stroke-width="1.5" opacity="0.7"/>
+  <line x1="276" y1="295" x2="332" y2="288" stroke="#00d4ff" stroke-width="1.5" opacity="0.7"/>
+  <line x1="276" y1="300" x2="336" y2="300" stroke="#00d4ff" stroke-width="1.5" opacity="0.7"/>
+  <!-- Speech bubble hint -->
+  <rect x="290" y="150" width="90" height="38" rx="10" fill="#00d4ff" opacity="0.9"/>
+  <polygon points="300,188 290,205 315,188" fill="#00d4ff" opacity="0.9"/>
+  <circle cx="308" cy="169" r="5" fill="#0a0a1a"/>
+  <circle cx="322" cy="169" r="5" fill="#0a0a1a"/>
+  <circle cx="336" cy="169" r="5" fill="#0a0a1a"/>
+  <!-- Glow effect -->
+  <circle cx="256" cy="268" r="95" fill="none" stroke="#00d4ff" stroke-width="1" stroke-opacity="0.3"/>
+</svg>
