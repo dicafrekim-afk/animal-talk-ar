@@ -36,12 +36,12 @@ export default function ARScene() {
     const file = e.target.files?.[0]
     if (!file) return
 
-    const objectUrl = URL.createObjectURL(file)
-    setUploadedImageUrl(objectUrl)
     clearAnalysis()
 
     try {
       const base64 = await fileToBase64(file)
+      // data URL로 이미지 표시 (createObjectURL 대비 모바일 호환성 우수)
+      setUploadedImageUrl(`data:${file.type || 'image/jpeg'};base64,${base64}`)
       await analyzeImage(base64)
     } catch {
       // analyzeImage 내부에서 에러 처리
@@ -52,10 +52,9 @@ export default function ARScene() {
   }, [analyzeImage, clearAnalysis])
 
   const handleBackToCamera = useCallback(() => {
-    if (uploadedImageUrl) URL.revokeObjectURL(uploadedImageUrl)
     setUploadedImageUrl(null)
     clearAnalysis()
-  }, [uploadedImageUrl, clearAnalysis])
+  }, [clearAnalysis])
 
   return (
     <div className={styles.arContainer}>

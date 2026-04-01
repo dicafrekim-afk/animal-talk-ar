@@ -108,6 +108,7 @@
   box-shadow: 0 0 12px #00bfff55, inset 0 0 8px #00bfff11;
   transition: all 0.2s ease;
   letter-spacing: 0.05em;
+  white-space: nowrap;
 }
 
 .analyzeBtn:hover:not(:disabled) {
@@ -202,7 +203,10 @@
 
 .buttonContainer {
   display: flex;
-  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  max-width: 90vw;
 }
 
 .analyzeBtn.active {
