@@ -43,6 +43,20 @@ export async function optimizeImage(base64) {
 }
 
 /**
+ * File 객체를 base64 문자열로 변환 (data URL prefix 없음)
+ * @param {File} file
+ * @returns {Promise<string>} base64
+ */
+export function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result.split(',')[1])
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
+
+/**
  * 비디오 엘리먼트에서 고품질 base64 JPEG 캡처
  * @param {HTMLVideoElement} video
  * @returns {string} base64 (data URL prefix 없음)

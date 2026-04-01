@@ -59,10 +59,37 @@ export function useCatAnalysis(videoRef) {
     }
   }, [videoRef, isAnalyzing, captureAudio])
 
+  const analyzeImage = useCallback(async (base64) => {
+    if (isAnalyzing) return
+
+    abortRef.current?.abort()
+    abortRef.current = new AbortController()
+
+    setIsAnalyzing(true)
+    setError(null)
+
+    try {
+      const result = await analyzeFrame(base64, abortRef.current.signal, null)
+
+      if (result.cat_detected && result.confidence_score < CONFIDENCE_THRESHOLD && prevAnalysisRef.current) {
+        setAnalysis(prevAnalysisRef.current)
+      } else {
+        prevAnalysisRef.current = result
+        setAnalysis(result)
+      }
+    } catch (err) {
+      if (err.name === 'AbortError') return
+      console.error('분석 실패:', err)
+      setError(err.message)
+    } finally {
+      setIsAnalyzing(false)
+    }
+  }, [isAnalyzing])
+
   const clearAnalysis = useCallback(() => {
     setAnalysis(null)
     setError(null)
   }, [])
 
-  return { analysis, isAnalyzing, error, analyze, clearAnalysis, micReady, micError }
+  return { analysis, isAnalyzing, error, analyze, analyzeImage, clearAnalysis, micReady, micError }
 }

@@ -210,3 +210,18 @@
   color: #4dff4d;
   box-shadow: 0 0 12px #4dff4d55, inset 0 0 8px #4dff4d11;
 }
+
+.hiddenFileInput {
+  display: none;
+}
+
+.uploadModeBadge {
+  margin-bottom: 0.6rem;
+  padding: 0.35rem 1rem;
+  border: 1px solid #ffaa00;
+  border-radius: 999px;
+  color: #ffcc55;
+  font-size: 0.82rem;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}

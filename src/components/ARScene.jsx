@@ -1,46 +1,83 @@
 import { Canvas } from '@react-three/fiber'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import SpeechBubble from './SpeechBubble'
 import AnalysisHUD from './AnalysisHUD'
 import { useCamera } from '../hooks/useCamera'
 import { useCatAnalysis } from '../hooks/useCatAnalysis'
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition'
+import { fileToBase64 } from '../utils/imageUtils'
 import styles from './ARScene.module.css'
 
 /**
  * ARScene - 카메라 배경 위에 Three.js Canvas를 오버레이하는 AR 씬
- * 레이어 구조: [카메라 video] → [Three.js Canvas] → [UI HUD]
+ * 레이어 구조: [카메라 video / 업로드 이미지] → [Three.js Canvas] → [UI HUD]
  */
 export default function ARScene() {
   const { videoRef, isReady, error: cameraError } = useCamera()
-  const { analysis, isAnalyzing, error: analysisError, analyze, clearAnalysis, micReady, micError } = useCatAnalysis(videoRef)
+  const { analysis, isAnalyzing, error: analysisError, analyze, analyzeImage, clearAnalysis, micReady, micError } = useCatAnalysis(videoRef)
   const { isListening, isSupported, start, stop } = useSpeechRecognition(analyze)
-  const [voiceCommandActive, setVoiceCommandActive] = useState(true);
+  const [voiceCommandActive, setVoiceCommandActive] = useState(true)
+  const [uploadedImageUrl, setUploadedImageUrl] = useState(null)
+  const fileInputRef = useRef(null)
 
-  const speechMessage = analysis?.cat_detected ? analysis.speech_bubble : null
+  const isUploadMode = uploadedImageUrl !== null
+  const speechMessage = analysis?.speech_bubble
 
   useEffect(() => {
-    if (isReady && voiceCommandActive) {
-      start();
+    // 업로드 모드일 때는 음성 명령 비활성화
+    if (isReady && voiceCommandActive && !isUploadMode) {
+      start()
     } else {
-      stop();
+      stop()
     }
-  }, [isReady, voiceCommandActive, start, stop]);
+  }, [isReady, voiceCommandActive, isUploadMode, start, stop])
 
+  const handleFileChange = useCallback(async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const objectUrl = URL.createObjectURL(file)
+    setUploadedImageUrl(objectUrl)
+    clearAnalysis()
+
+    try {
+      const base64 = await fileToBase64(file)
+      await analyzeImage(base64)
+    } catch {
+      // analyzeImage 내부에서 에러 처리
+    }
+
+    // input 초기화 (같은 파일 재선택 허용)
+    e.target.value = ''
+  }, [analyzeImage, clearAnalysis])
+
+  const handleBackToCamera = useCallback(() => {
+    if (uploadedImageUrl) URL.revokeObjectURL(uploadedImageUrl)
+    setUploadedImageUrl(null)
+    clearAnalysis()
+  }, [uploadedImageUrl, clearAnalysis])
 
   return (
     <div className={styles.arContainer}>
-      {/* 레이어 1: 카메라 피드 */}
+      {/* 레이어 1: 카메라 피드 또는 업로드 이미지 */}
       <video
         ref={videoRef}
         className={styles.cameraBackground}
+        style={{ display: isUploadMode ? 'none' : 'block' }}
         autoPlay
         playsInline
         muted
       />
+      {isUploadMode && (
+        <img
+          src={uploadedImageUrl}
+          className={styles.cameraBackground}
+          alt="업로드된 사진"
+        />
+      )}
 
       {/* 카메라 에러 */}
-      {cameraError && (
+      {cameraError && !isUploadMode && (
         <div className={styles.errorOverlay}>
           <p>카메라를 사용할 수 없어요</p>
           <p className={styles.errorDetail}>{cameraError}</p>
@@ -65,20 +102,13 @@ export default function ARScene() {
       <div className={styles.uiOverlay}>
         <div className={styles.title}>Animal Talk AR</div>
 
+        {/* 업로드 모드 뱃지 */}
+        {isUploadMode && !isAnalyzing && (
+          <div className={styles.uploadModeBadge}>📷 사진 분석 모드</div>
+        )}
+
         {/* 행동 분석 HUD */}
         <AnalysisHUD analysis={analysis} onClose={clearAnalysis} />
-
-        {/* 2D 말풍선 - 화면 중앙 */}
-        {analysis?.cat_detected && analysis.speech_bubble && (
-          <div className={styles.speechBubble}>
-            <span>{analysis.speech_bubble}</span>
-          </div>
-        )}
-
-        {/* 고양이 미감지 메시지 */}
-        {analysis && !analysis.cat_detected && (
-          <div className={styles.noCatBadge}>{analysis.speech_bubble}</div>
-        )}
 
         {/* API 에러 */}
         {analysisError && (
@@ -90,36 +120,76 @@ export default function ARScene() {
         {/* 분석 중 표시 */}
         {isAnalyzing && (
           <div className={styles.analyzingBadge}>
-            {micReady ? '👂 소리 듣고 분석 중...' : '📷 분석 중...'}
+            {isUploadMode ? '🖼️ 사진 분석 중...' : micReady ? '👂 소리 듣고 분석 중...' : '📷 분석 중...'}
           </div>
         )}
 
         {/* 마이크 오류 안내 (첫 로드 시만 노출) */}
-        {micError && !analysis && !isAnalyzing && (
+        {micError && !analysis && !isAnalyzing && !isUploadMode && (
           <div className={styles.micErrorBadge}>🎙️ 마이크 없이 이미지만 분석해요</div>
         )}
 
         {isListening && (
-            <div className={styles.analyzingBadge} style={{borderColor: '#4dff4d', color: '#99ff99'}}>음성 명령 대기 중...</div>
+          <div className={styles.analyzingBadge} style={{ borderColor: '#4dff4d', color: '#99ff99' }}>음성 명령 대기 중...</div>
         )}
 
+        {/* 숨겨진 파일 입력 */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className={styles.hiddenFileInput}
+          onChange={handleFileChange}
+        />
+
         <div className={styles.buttonContainer}>
-          {isSupported && (
-            <button
-              className={`${styles.analyzeBtn} ${voiceCommandActive ? styles.active : ''}`}
-              onClick={() => setVoiceCommandActive(prev => !prev)}
-            >
-              {voiceCommandActive ? '음성명령 끄기' : '음성명령 켜기'}
-            </button>
+          {/* 카메라 모드 버튼들 */}
+          {!isUploadMode && (
+            <>
+              {isSupported && (
+                <button
+                  className={`${styles.analyzeBtn} ${voiceCommandActive ? styles.active : ''}`}
+                  onClick={() => setVoiceCommandActive(prev => !prev)}
+                >
+                  {voiceCommandActive ? '음성명령 끄기' : '음성명령 켜기'}
+                </button>
+              )}
+              <button
+                className={styles.analyzeBtn}
+                onClick={analyze}
+                disabled={isAnalyzing || !isReady}
+              >
+                {isAnalyzing ? '분석 중...' : !isReady ? '카메라 준비 중...' : '쿤이/민이 말 걸기'}
+              </button>
+              <button
+                className={styles.analyzeBtn}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isAnalyzing}
+              >
+                사진 업로드
+              </button>
+            </>
           )}
-          {/* 촬영 버튼 */}
-          <button
-            className={styles.analyzeBtn}
-            onClick={analyze}
-            disabled={isAnalyzing || !isReady}
-          >
-            {isAnalyzing ? '분석 중...' : !isReady ? '카메라 준비 중...' : '쿤이/민이 말 걸기'}
-          </button>
+
+          {/* 업로드 모드 버튼들 */}
+          {isUploadMode && (
+            <>
+              <button
+                className={styles.analyzeBtn}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isAnalyzing}
+              >
+                {isAnalyzing ? '분석 중...' : '다른 사진 선택'}
+              </button>
+              <button
+                className={styles.analyzeBtn}
+                onClick={handleBackToCamera}
+                disabled={isAnalyzing}
+              >
+                카메라로 돌아가기
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
