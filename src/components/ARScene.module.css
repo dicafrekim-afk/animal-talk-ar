@@ -219,6 +219,18 @@
   display: none;
 }
 
+/* 업로드된 사진 배경 - video와 동일한 레이아웃, 별도 클래스로 명시 */
+.uploadedImage {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  z-index: 0 !important;
+  display: block !important;
+}
+
 .uploadModeBadge {
   margin-bottom: 0.6rem;
   padding: 0.35rem 1rem;
