@@ -8,30 +8,20 @@ import { useSpeechRecognition } from '../hooks/useSpeechRecognition'
 import { fileToBase64 } from '../utils/imageUtils'
 import styles from './ARScene.module.css'
 
-const IMG_STYLE = {
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  width: '100%',
-  height: '100%',
-  objectFit: 'cover',
-  zIndex: 0,
-}
-
 /**
  * ARScene - 카메라 배경 위에 Three.js Canvas를 오버레이하는 AR 씬
- * 레이어 구조: [카메라 video / 업로드 이미지] → [Three.js Canvas] → [UI HUD]
+ * 레이어 구조: [카메라 video / 업로드 이미지(배경)] → [Three.js Canvas] → [UI HUD]
  */
 export default function ARScene() {
   const { videoRef, isReady, error: cameraError } = useCamera()
   const { analysis, isAnalyzing, error: analysisError, analyze, analyzeImage, clearAnalysis, micReady, micError } = useCatAnalysis(videoRef)
   const { isListening, isSupported, start, stop } = useSpeechRecognition(analyze)
   const [voiceCommandActive, setVoiceCommandActive] = useState(true)
-  const [uploadedImageUrl, setUploadedImageUrl] = useState(null)
+  // 업로드 이미지는 data URL로 저장 (blob URL은 StrictMode 이중 마운트에서 무효화될 수 있음)
+  const [uploadedDataUrl, setUploadedDataUrl] = useState(null)
   const fileInputRef = useRef(null)
-  const objectUrlRef = useRef(null)
 
-  const isUploadMode = uploadedImageUrl !== null
+  const isUploadMode = uploadedDataUrl !== null
   const speechMessage = analysis?.speech_bubble
 
   useEffect(() => {
@@ -42,52 +32,48 @@ export default function ARScene() {
     }
   }, [isReady, voiceCommandActive, isUploadMode, start, stop])
 
-  // 컴포넌트 언마운트 시 object URL 정리
-  useEffect(() => {
-    return () => {
-      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current)
-    }
-  }, [])
-
   const handleFileChange = useCallback(async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
 
     clearAnalysis()
-
-    // 이전 object URL 해제
-    if (objectUrlRef.current) {
-      URL.revokeObjectURL(objectUrlRef.current)
-    }
-
-    // createObjectURL로 즉시 표시 (빠르고 메모리 효율적)
-    const objectUrl = URL.createObjectURL(file)
-    objectUrlRef.current = objectUrl
-    setUploadedImageUrl(objectUrl)
-
-    // base64는 AI 분석용으로만 별도 변환
-    try {
-      const base64 = await fileToBase64(file)
-      await analyzeImage(base64)
-    } catch {
-      // analyzeImage 내부에서 에러 처리
-    }
-
     e.target.value = ''
+
+    // FileReader로 data URL 읽기 — 안정적이고 StrictMode에 안전
+    const reader = new FileReader()
+    reader.onload = async (event) => {
+      const dataUrl = event.target.result // "data:image/jpeg;base64,..."
+      setUploadedDataUrl(dataUrl)
+
+      const base64 = dataUrl.split(',')[1]
+      try {
+        await analyzeImage(base64)
+      } catch {
+        // analyzeImage 내부에서 에러 처리
+      }
+    }
+    reader.readAsDataURL(file)
   }, [analyzeImage, clearAnalysis])
 
   const handleBackToCamera = useCallback(() => {
-    if (objectUrlRef.current) {
-      URL.revokeObjectURL(objectUrlRef.current)
-      objectUrlRef.current = null
-    }
-    setUploadedImageUrl(null)
+    setUploadedDataUrl(null)
     clearAnalysis()
   }, [clearAnalysis])
 
+  // 업로드 모드일 때 컨테이너에 background-image로 사진 표시
+  // <img> 요소 대신 CSS background를 사용해 렌더링 문제 우회
+  const containerStyle = isUploadMode
+    ? {
+        backgroundImage: `url("${uploadedDataUrl}")`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }
+    : {}
+
   return (
-    <div className={styles.arContainer}>
-      {/* 레이어 1: 카메라 피드 또는 업로드 이미지 */}
+    <div className={styles.arContainer} style={containerStyle}>
+      {/* 레이어 1: 카메라 피드 (업로드 모드에서는 숨김) */}
       <video
         ref={videoRef}
         className={styles.cameraBackground}
@@ -96,13 +82,6 @@ export default function ARScene() {
         playsInline
         muted
       />
-      {isUploadMode && (
-        <img
-          src={uploadedImageUrl}
-          style={IMG_STYLE}
-          alt="업로드된 사진"
-        />
-      )}
 
       {/* 카메라 에러 */}
       {cameraError && !isUploadMode && (
