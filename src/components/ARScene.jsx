@@ -8,6 +8,16 @@ import { useSpeechRecognition } from '../hooks/useSpeechRecognition'
 import { fileToBase64 } from '../utils/imageUtils'
 import styles from './ARScene.module.css'
 
+const IMG_STYLE = {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+  zIndex: 0,
+}
+
 /**
  * ARScene - 카메라 배경 위에 Three.js Canvas를 오버레이하는 AR 씬
  * 레이어 구조: [카메라 video / 업로드 이미지] → [Three.js Canvas] → [UI HUD]
@@ -19,12 +29,12 @@ export default function ARScene() {
   const [voiceCommandActive, setVoiceCommandActive] = useState(true)
   const [uploadedImageUrl, setUploadedImageUrl] = useState(null)
   const fileInputRef = useRef(null)
+  const objectUrlRef = useRef(null)
 
   const isUploadMode = uploadedImageUrl !== null
   const speechMessage = analysis?.speech_bubble
 
   useEffect(() => {
-    // 업로드 모드일 때는 음성 명령 비활성화
     if (isReady && voiceCommandActive && !isUploadMode) {
       start()
     } else {
@@ -32,26 +42,45 @@ export default function ARScene() {
     }
   }, [isReady, voiceCommandActive, isUploadMode, start, stop])
 
+  // 컴포넌트 언마운트 시 object URL 정리
+  useEffect(() => {
+    return () => {
+      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current)
+    }
+  }, [])
+
   const handleFileChange = useCallback(async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
 
     clearAnalysis()
 
+    // 이전 object URL 해제
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current)
+    }
+
+    // createObjectURL로 즉시 표시 (빠르고 메모리 효율적)
+    const objectUrl = URL.createObjectURL(file)
+    objectUrlRef.current = objectUrl
+    setUploadedImageUrl(objectUrl)
+
+    // base64는 AI 분석용으로만 별도 변환
     try {
       const base64 = await fileToBase64(file)
-      // data URL로 이미지 표시 (createObjectURL 대비 모바일 호환성 우수)
-      setUploadedImageUrl(`data:${file.type || 'image/jpeg'};base64,${base64}`)
       await analyzeImage(base64)
     } catch {
       // analyzeImage 내부에서 에러 처리
     }
 
-    // input 초기화 (같은 파일 재선택 허용)
     e.target.value = ''
   }, [analyzeImage, clearAnalysis])
 
   const handleBackToCamera = useCallback(() => {
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current)
+      objectUrlRef.current = null
+    }
     setUploadedImageUrl(null)
     clearAnalysis()
   }, [clearAnalysis])
@@ -70,7 +99,7 @@ export default function ARScene() {
       {isUploadMode && (
         <img
           src={uploadedImageUrl}
-          className={styles.cameraBackground}
+          style={IMG_STYLE}
           alt="업로드된 사진"
         />
       )}
